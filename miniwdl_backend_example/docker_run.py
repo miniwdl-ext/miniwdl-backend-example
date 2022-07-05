@@ -196,7 +196,7 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
 
         # Docker image tag
         image = self.runtime_values.get(
-            "docker", self.cfg.get_dict("task_runtime", "defaults")["docker"]
+            "docker", self.cfg.get_dict("task_runtime", "defaults").get("docker", "ubuntu:20.04")
         )
         ans.append(image)
 
