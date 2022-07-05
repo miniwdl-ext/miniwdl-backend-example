@@ -175,6 +175,8 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
 
         # Example of loading a custom configuration option from the .cfg file or environment. Always
         # provide a default value for custom options (that aren't set in miniwdl's default.cfg).
+        # For available operations on the cfg: ConfigLoader object see
+        #    https://github.com/chanzuckerberg/miniwdl/blob/main/WDL/runtime/config.py
         """
         if self.cfg.get_bool("docker_run", "read_only_root_filesystem", False):
             ans.append("--read-only")
@@ -183,8 +185,8 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         # File/Directory I/O mounts
         # If the task takes a very large number of inputs, then we might worry about the command
         # line exceeding some system limit. Then we might need to explore an alternate
-        # implementation strategy, such as mounting the entire host filesystem and populating
-        # the working directory with symlinks to the input files (miniwdl-aws does this).
+        # implementation strategy, such populating the working directory with hardlinks to the
+        # inputs, and just mounting that directory.
         for (host_path, container_path, writable) in self.prepare_mounts(command):
             assert ":" not in (container_path + host_path)
             vol = f"{host_path}:{container_path}"
