@@ -153,9 +153,9 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
             # Run as the invoking uid inside the container; this avoids the annoying problem of
             # files written inside the container being owned by root afterwards. But it's
             # incompatible with task commands that assume they're running as root (e.g. to install
-            # packages at runtime). That's okay for this example -- it suffices for miniwdl's
-            # self-test -- but miniwdl's production backends jump through some hoops to chown the
-            # working directory after letting the command as root.
+            # packages at runtime). That's fine for this toy example, but miniwdl's built-in
+            # backends jump through some hoops to chown the working directory after letting the
+            # command run as root.
             "--user",
             str(os.getuid()),
         ]
