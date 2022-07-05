@@ -1,0 +1,26 @@
+name: build
+on: [push, pull_request]
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - name: dependencies
+      run: pip3 install pre-commit black flake8
+    - name: linters
+      run: pre-commit run --all-files
+
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - name: test
+      run: prove -v test/test.t

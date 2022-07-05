@@ -17,9 +17,9 @@ pip3 install .
 export MINIWDL__SCHEDULER__CONTAINER_BACKEND=example_docker_run
 
 # provision temp test directory
-DN=$(mktemp -d)
-DN=$(realpath "$DN")
-cd $DN
+DN="$(mktemp -d)"
+DN="$(realpath "$DN")"
+cd "$DN"
 echo "$DN"
 
 # bash-tap test plan
