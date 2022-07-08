@@ -266,6 +266,9 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
                     self.host_dir, os.path.relpath(container_path.rstrip("/"), self.container_dir)
                 )
                 if not os.path.exists(host_mount_point):
+                    # touch_mount_point: it's helpful to touch any mount points that don't already
+                    # exist; if we let the container create them then they might get unexpected
+                    # ownership/permissions.
                     self.touch_mount_point(
                         host_mount_point + ("/" if container_path.endswith("/") else "")
                     )
