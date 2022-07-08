@@ -92,10 +92,6 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
                 # might have resource scheduling logic or submit to some external queue.
                 cleanup.enter_context(self._run_lock)
 
-                # The poll_stderr context yields a helper function that we should invoke frequently
-                # to forward the task's standard error to miniwdl's verbose log.
-                poll_stderr = cleanup.enter_context(self.poll_stderr_context(logger))
-
                 # The task running context updates miniwdl's status bar for running tasks; we
                 # should enter it when our container actually starts (not while it's still in a
                 # resource scheduling queue).
@@ -112,6 +108,10 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
                     invocation, cwd=self.host_dir, stdout=docker_run_log, stderr=subprocess.STDOUT
                 )
                 logger.notice(_("docker run", pid=proc.pid, log=docker_run_log_filename))
+
+                # The poll_stderr context yields a helper function that we should invoke frequently
+                # while the task runs, to forward its standard error to miniwdl's verbose log.
+                poll_stderr = cleanup.enter_context(self.poll_stderr_context(logger))
 
                 # Long-poll for completion
                 exit_code = None
