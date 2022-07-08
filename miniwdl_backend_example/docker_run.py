@@ -60,6 +60,21 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         super().copy_input_files(logger)
         self._copied_input_files = True
 
+    def process_runtime(self, logger, runtime_eval):
+        """
+        This method validates the evaluated task runtime{} expressions and processes them into
+        self.runtime_values, which we'll refer to while configuring the container below.
+
+        runtime_eval is Dict[str, WDL.Value.Base] with the result of evaluating each runtime expr.
+        self.runtime_values is Dict[str, Any] with whatever values will make sense to our code that
+        consumes them below.
+
+        The base implementation populates standard entries like docker/container, cpu, memory,
+        maxRetries, returnCodes. We can use this opportunity to process any backend-specific
+        runtime entries we wish to support (before or after calling the base implementation).
+        """
+        super().process_runtime(logger, runtime_eval)
+
     def _run(self, logger, terminating, command):
         """
         Run task
@@ -177,10 +192,8 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         # provide a default value for custom options (that aren't set in miniwdl's default.cfg).
         # For available operations on the cfg: ConfigLoader object see
         #    https://github.com/chanzuckerberg/miniwdl/blob/main/WDL/runtime/config.py
-        """
         if self.cfg.get_bool("docker_run", "read_only_root_filesystem", False):
             ans.append("--read-only")
-        """
 
         # File/Directory I/O mounts
         # If the task takes a very large number of inputs, then we might worry about the command
@@ -214,28 +227,17 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         Prepare list of (host_path, container_path, writable) to be mounted in the container
         """
 
-        def touch_mount_point(host_path: str) -> None:
-            # Touch each mount point in the working directory that wouldn't already exist; this
-            # just ensures they'll be owned by the invoking user:group
-            assert host_path.startswith(self.host_dir + "/")
-            if host_path.endswith("/"):  # Directory mount point
-                os.makedirs(host_path, exist_ok=True)
-            else:  # File mount point
-                os.makedirs(os.path.dirname(host_path), exist_ok=True)
-                with open(host_path, "x") as _:
-                    pass
-
         mounts = []
 
         # Mount stdout, stderr, and working directory read/write.
         # stdout has to go into self.host_stdout_txt(), which is where the stdout() WDL function
         # will look for it if called; ditto for stderr. Also, poll_stderr() tails
         # self.host_stderr_txt()
-        touch_mount_point(self.host_stdout_txt())
+        self.touch_mount_point(self.host_stdout_txt())
         mounts.append(
             (self.host_stdout_txt(), os.path.join(self.container_dir, "stdout.txt"), True)
         )
-        touch_mount_point(self.host_stderr_txt())
+        self.touch_mount_point(self.host_stderr_txt())
         mounts.append(
             (self.host_stderr_txt(), os.path.join(self.container_dir, "stderr.txt"), True)
         )
@@ -264,7 +266,7 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
                     self.host_dir, os.path.relpath(container_path.rstrip("/"), self.container_dir)
                 )
                 if not os.path.exists(host_mount_point):
-                    touch_mount_point(
+                    self.touch_mount_point(
                         host_mount_point + ("/" if container_path.endswith("/") else "")
                     )
                 mounts.append((host_path.rstrip("/"), container_path.rstrip("/"), False))
