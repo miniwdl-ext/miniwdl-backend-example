@@ -141,10 +141,9 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
                 # Return container exit status (which might or might not be zero)
                 assert isinstance(exit_code, int)
                 return exit_code
+        except WDL.runtime.Terminated:
+            raise
         except Exception as exn:
-            if isinstance(exn, WDL.runtime.Terminated):
-                raise
-
             # In the event of an error (other than Terminated or non-zero container exit status),
             # emit an informative log message and raise a WDL.Error.RuntimeError (or some subclass
             # thereof)
