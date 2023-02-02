@@ -37,5 +37,7 @@ is "$?" "0" "plugin active"
 grep 'VERBOSE Hello, Alyssa P. Hacker!' $(find self_test -name workflow.log)
 is "$?" "0" "stderr logging"
 
+# TODO: targeted tests for termination, retries, --copy-input-files
+
 # clean up
 rm -rf "$DN"

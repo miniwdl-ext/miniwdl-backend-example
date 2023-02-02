@@ -12,7 +12,7 @@ setup(
     author="Wid L. Hacker",
     python_requires=">=3.6",
     packages=find_packages(),
-    install_requires=["miniwdl>=1.6.0"],
+    install_requires=["miniwdl>=1.9.0"],
     # The following entry point is how miniwdl discovers the plugin once this package has been
     # installed locally by `pip3 install .`.
     # - example_docker_run is the name to be set in the [scheduler] container_backend configuration

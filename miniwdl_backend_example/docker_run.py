@@ -84,7 +84,6 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         try:
             # contextlib.ExitStack() is useful for numerous "finally" actions
             with ExitStack() as cleanup:
-
                 # Formulate `docker run` invocation
                 invocation = self.docker_run_invocation(command)
 
@@ -199,7 +198,7 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         # line exceeding some system limit. Then we might need to explore an alternate
         # implementation strategy, such populating the working directory with hardlinks to the
         # inputs, and just mounting that directory.
-        for (host_path, container_path, writable) in self.prepare_mounts(command):
+        for host_path, container_path, writable in self.prepare_mounts(command):
             assert ":" not in (container_path + host_path)
             vol = f"{host_path}:{container_path}"
             if not writable:
@@ -212,12 +211,13 @@ class DockerRun(WDL.runtime.task_container.TaskContainer):
         )
         ans.append(image)
 
-        # Bootstrapping within the container: execute the given command in a login shell with
-        # stdout and stderr redirected into log files.
+        # Bootstrapping within the container: execute the given command with stdout and stderr
+        # redirected into log files.
         ans += [
-            "/bin/bash",
+            "/bin/sh",
             "-c",
-            "bash -l ../command >> ../stdout.txt 2>> ../stderr.txt",
+            self.cfg.get("task_runtime", "command_shell")
+            + " ../command >> ../stdout.txt 2>> ../stderr.txt",
         ]
         return ans
 
